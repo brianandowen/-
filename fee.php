@@ -114,10 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-<footer style="position: fixed; bottom: 5%; width: 100%; text-align: center;">
-    <small>
-      Copyright © 2024 輔大資管學系 二甲 陳庭毅 412401317
-    </small>
+<footer class="text-center mt-4">
+    <small>&copy; 2024 輔大資管學系 二甲 陳庭毅 412401317</small>
 </footer>
 
 </html>
