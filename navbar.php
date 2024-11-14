@@ -15,9 +15,6 @@ require_once 'session.php';
                         <a class="nav-link" href="query.php">管理查詢</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin.php">管理員頁面</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="activities.php">活動紀錄表格</a>
                     </li>
                     <li class="nav-item">
