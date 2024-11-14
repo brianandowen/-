@@ -36,7 +36,6 @@ unset($_SESSION['errorMessage']); // 顯示後清除錯誤訊息
                     <div class="d-grid">
                         <input type="submit" value="Login" class="btn btn-primary">
                     </div>
-                    <p>還沒有帳號？ <a href="register.php">立即註冊</a></p>
                 </form>
             </div>
         </div>
