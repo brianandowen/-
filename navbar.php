@@ -24,9 +24,6 @@ require_once 'session.php';
                         <a class="nav-link" href="fee.php">費用頁面</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="query.php">查詢頁面</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="logout.php">登出</a>
                     </li>
             </ul>
