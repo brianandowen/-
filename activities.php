@@ -16,6 +16,15 @@ $selected_member_id = $_GET['member_id'] ?? null;
 $members_query = "SELECT id, name FROM members ORDER BY name";
 $members_result = $conn->query($members_query);
 
+// 查詢所有成員的活動紀錄，用於「總覽」
+$overview_query = "
+    SELECT m.name AS member_name, m.student_id, a.activity_name, a.role, a.activity_date
+    FROM activity_logs a
+    JOIN members m ON a.member_id = m.id
+    ORDER BY m.name, a.activity_date DESC
+";
+$overview_result = $conn->query($overview_query);
+
 // 查詢選定成員的活動紀錄
 $activities = [];
 $total_activities = 0;
@@ -83,6 +92,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <?= htmlspecialchars($message) ?>
         </div>
     <?php endif; ?>
+
+    <!-- 總覽表格 -->
+    <h2 class="mt-4">總覽</h2>
+    <table class="table table-bordered mt-4">
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>學號</th>
+                <th>活動名稱</th>
+                <th>角色</th>
+                <th>活動日期</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = $overview_result->fetch_assoc()): ?>
+                <tr>
+                    <td><?= htmlspecialchars($row['member_name']) ?></td>
+                    <td><?= htmlspecialchars($row['student_id']) ?></td>
+                    <td><?= htmlspecialchars($row['activity_name']) ?></td>
+                    <td><?= htmlspecialchars($row['role']) ?></td>
+                    <td><?= htmlspecialchars($row['activity_date']) ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
 
     <!-- 選擇成員 -->
     <form action="activities.php" method="GET" class="mb-4">
@@ -176,10 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
-<footer style="position: fixed; bottom: 5%; width: 100%; text-align: center;">
-    <small>
-      Copyright © 2024 輔大資管學系 二甲 陳庭毅 412401317
-    </small>
+<footer class="text-center mt-4">
+    <small>&copy; 2024 輔大資管學系 二甲 陳庭毅 412401317</small>
 </footer>
 
 </html>
