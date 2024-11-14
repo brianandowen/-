@@ -1,61 +1,41 @@
 <?php
-require_once 'session.php'; // 包含 session 驗證邏輯
+require_once 'session.php';
 require_once 'db.php';
 
-// 初始化訊息
+// 查詢已繳費的學生
+$paid_query = "SELECT m.name, m.student_id, f.payment_date 
+               FROM members m 
+               JOIN fees f ON m.id = f.member_id 
+               WHERE f.fee_status = 1";
+$paid_result = $conn->query($paid_query);
+
+// 查詢尚未繳費的學生，用於新增繳費
+$unpaid_query = "SELECT id, name, student_id 
+                 FROM members 
+                 WHERE id NOT IN (SELECT member_id FROM fees WHERE fee_status = 1)";
+$unpaid_result = $conn->query($unpaid_query);
+
+// 統計繳費和未繳費人數
+$paid_count = $conn->query("SELECT COUNT(*) as count FROM fees WHERE fee_status = 1")->fetch_assoc()['count'];
+$unpaid_count = $conn->query("SELECT COUNT(*) as count FROM members WHERE id NOT IN (SELECT member_id FROM fees WHERE fee_status = 1)")->fetch_assoc()['count'];
+
+// 更新繳費狀態處理
 $message = '';
-
-// 從 session 中獲取使用者的 member_id
-$member_id = $_SESSION['user_id']; // 假設 session 中已儲存使用者 ID 作為 member_id
-
-// 查詢該使用者的繳費狀況
-$query = "SELECT fee_status, payment_date FROM fee WHERE member_id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $member_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-$fee_status = 0;
-$payment_date = null;
-
-if ($result->num_rows > 0) {
-    $fee_data = $result->fetch_assoc();
-    $fee_status = $fee_data['fee_status'];
-    $payment_date = $fee_data['payment_date'];
-}
-
-// 處理表單提交，更新繳費狀態
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fee_status = isset($_POST['fee_status']) ? 1 : 0;
-    $payment_date = $fee_status ? date('Y-m-d') : null;
-
-    // 檢查是否已有繳費記錄
-    if ($result->num_rows > 0) {
-        // 更新已存在的記錄
-        $update_query = "UPDATE fee SET fee_status = ?, payment_date = ? WHERE member_id = ?";
-        $stmt = $conn->prepare($update_query);
-        $stmt->bind_param("isi", $fee_status, $payment_date, $member_id);
-    } else {
-        // 插入新的記錄
-        $insert_query = "INSERT INTO fee (member_id, fee_status, payment_date) VALUES (?, ?, ?)";
-        $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("iis", $member_id, $fee_status, $payment_date);
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
+    $selected_member = $_POST['selected_member'];
+    $payment_date = date('Y-m-d');
+    $insert_query = "INSERT INTO fees (member_id, fee_status, payment_date) VALUES (?, 1, ?)";
+    $stmt = $conn->prepare($insert_query);
+    $stmt->bind_param("is", $selected_member, $payment_date);
 
     if ($stmt->execute()) {
-        $message = "會費狀態已更新成功！";
+        $message = "繳費已成功添加！";
+        header("Location: fees.php"); // 重新加載頁面以更新數據
+        exit();
     } else {
-        $message = "更新失敗，請稍後再試。";
+        $message = "添加失敗，請稍後再試。";
     }
 }
-
-// 查詢已繳費與未繳費人數，用於生成統計表
-$paid_query = "SELECT COUNT(*) as paid_count FROM fee WHERE fee_status = 1";
-$unpaid_query = "SELECT COUNT(*) as unpaid_count FROM fee WHERE fee_status = 0";
-$paid_result = $conn->query($paid_query);
-$unpaid_result = $conn->query($unpaid_query);
-$paid_count = $paid_result->fetch_assoc()['paid_count'] ?? 0;
-$unpaid_count = $unpaid_result->fetch_assoc()['unpaid_count'] ?? 0;
 ?>
 
 <!DOCTYPE html>
@@ -63,43 +43,55 @@ $unpaid_count = $unpaid_result->fetch_assoc()['unpaid_count'] ?? 0;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>會費管理系統</title>
+    <title>會費查詢</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <?php include 'navbar.php'; ?>
 
 <div class="container mt-5">
-    <h1 class="text-center">會費管理系統</h1>
+    <h1 class="text-center">會費查詢</h1>
 
-    <!-- 顯示成功或錯誤訊息 -->
+    <!-- 已繳費學生列表 -->
+    <h2 class="mt-4">已繳費的學生</h2>
     <?php if ($message): ?>
-        <div class="alert <?= strpos($message, '成功') ? 'alert-success' : 'alert-danger' ?>" role="alert">
-            <?= htmlspecialchars($message); ?>
-        </div>
+        <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
     <?php endif; ?>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>學號</th>
+                <th>繳費時間</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($row = $paid_result->fetch_assoc()): ?>
+                <tr>
+                    <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td><?= htmlspecialchars($row['student_id']) ?></td>
+                    <td><?= htmlspecialchars($row['payment_date']) ?></td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
 
-    <!-- 使用者繳費狀態表單 -->
-    <form action="fee.php" method="POST">
-        <div class="mb-4">
-            <label class="form-label">繳費狀態:</label><br>
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="fee_status" id="fee_status" <?= $fee_status ? 'checked' : '' ?>>
-                <label class="form-check-label" for="fee_status">是否已繳費</label>
-            </div>
+    <!-- 新增繳費記錄 -->
+    <h2 class="mt-4">新增繳費</h2>
+    <form action="fees.php" method="POST">
+        <div class="mb-3">
+            <label for="selected_member" class="form-label">選擇學生:</label>
+            <select class="form-select" name="selected_member" id="selected_member" required>
+                <option value="">請選擇尚未繳費的學生</option>
+                <?php while ($row = $unpaid_result->fetch_assoc()): ?>
+                    <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?> (<?= htmlspecialchars($row['student_id']) ?>)</option>
+                <?php endwhile; ?>
+            </select>
         </div>
-
-        <?php if ($fee_status && $payment_date): ?>
-            <div class="mb-4">
-                <label class="form-label">繳費日期:</label>
-                <p><?= htmlspecialchars($payment_date); ?></p>
-            </div>
-        <?php endif; ?>
-
-        <button type="submit" class="btn btn-outline-dark w-100">更新繳費狀態</button>
+        <button type="submit" class="btn btn-primary w-100">新增繳費</button>
     </form>
 
-    <!-- 會費繳交統計表 -->
+    <!-- 繳費統計表 -->
     <div class="mt-5">
         <h2 class="text-center">會費繳交統計表</h2>
         <table class="table table-bordered">
