@@ -6,32 +6,34 @@ require_once 'db.php';
 $message = ''; // 儲存訊息
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $account = $_POST['account'];
-    $password = $_POST['password'];
     $name = $_POST['name'];
+    $student_id = $_POST['student_id'];
+    $contact_info = $_POST['contact_info'];
+    $enrollment_year = $_POST['enrollment_year'];
+    $position = $_POST['position'];
 
-    // 檢查帳號是否已存在
-    $query = "SELECT * FROM user WHERE account = ?";
+    // 檢查學號是否已存在
+    $query = "SELECT * FROM members WHERE student_id = ?";
     $stmt = $conn->prepare($query);
 
     if (!$stmt) {
         $message = "準備語句失敗: " . $conn->error;
     } else {
-        $stmt->bind_param("s", $account);
+        $stmt->bind_param("s", $student_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $message = "帳號已存在，請選擇其他帳號。";
+            $message = "學號已存在，請確認或聯繫管理員。";
         } else {
-            // 插入新使用者
-            $query = "INSERT INTO user (account, password, name) VALUES (?, ?, ?)";
+            // 插入新成員資料
+            $query = "INSERT INTO members (name, student_id, contact_info, enrollment_year, position) VALUES (?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($query);
 
             if (!$stmt) {
                 $message = "準備語句失敗: " . $conn->error;
             } else {
-                $stmt->bind_param("sss", $account, $password, $name);
+                $stmt->bind_param("sssss", $name, $student_id, $contact_info, $enrollment_year, $position);
                 if ($stmt->execute()) {
                     $message = "註冊成功！";
                 } else {
@@ -49,13 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <title>Register</title>
+    <title>註冊成員</title>
 </head>
 <body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
     <div class="container" style="max-width: 400px;">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h2 class="text-center mb-4">Register</h2>
+                <h2 class="text-center mb-4">註冊成員</h2>
 
                 <!-- 顯示註冊訊息 -->
                 <?php if (!empty($message)): ?>
@@ -66,18 +68,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <form action="register.php" method="POST">
                     <div class="mb-3">
-                        <label for="account" class="form-label">帳號:</label>
-                        <input type="text" id="account" name="account" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">密碼:</label>
-                        <input type="password" id="password" name="password" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="name" class="form-label">名稱:</label>
+                        <label for="name" class="form-label">姓名:</label>
                         <input type="text" id="name" name="name" class="form-control" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">註冊</button>
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">學號:</label>
+                        <input type="text" id="student_id" name="student_id" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contact_info" class="form-label">聯絡方式:</label>
+                        <input type="text" id="contact_info" name="contact_info" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="enrollment_year" class="form-label">入學年份:</label>
+                        <input type="number" id="enrollment_year" name="enrollment_year" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="position" class="form-label">職位:</label>
+                        <input type="text" id="position" name="position" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">註冊成員</button>
                     <a href="login.php">回上一步</a>
                 </form>
             </div>
