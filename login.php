@@ -15,7 +15,7 @@ unset($_SESSION['errorMessage']); // 顯示後清除錯誤訊息
     <div class="container" style="max-width: 400px;">
         <div class="card shadow-sm">
             <div class="card-body">
-                <h2 class="text-center mb-4">Login</h2>
+                <h2 class="text-center mb-4">管理員登入</h2>
 
                 <!-- 顯示錯誤訊息 -->
                 <?php if (!empty($errorMessage)): ?>
@@ -23,11 +23,11 @@ unset($_SESSION['errorMessage']); // 顯示後清除錯誤訊息
                 <?php endif; ?>
                 <form action="login_process.php" method="post">
                     <div class="mb-3">
-                        <label for="account" class="form-label">Account:</label>
+                        <label for="account" class="form-label">帳號:</label>
                         <input type="text" id="account" name="account" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password:</label>
+                        <label for="password" class="form-label">密碼:</label>
                         <div class="input-group">
                             <input type="password" id="password" name="password" class="form-control" required>
                             <button type="button" class="btn btn-outline-secondary" onclick="togglePassword()">顯示密碼</button>

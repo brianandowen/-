@@ -86,6 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="mb-3">
                         <label for="position" class="form-label">職位:</label>
                         <select id="position" name="position" class="form-control">
+                            <option>請選擇</option>
                             <option value="會員">會員</option>
                             <option value="幹部">幹部</option>
                         </select>
