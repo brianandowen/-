@@ -2,6 +2,12 @@
 require_once 'db.php';
 require_once 'session.php';
 
+// 檢查是否為管理者
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'M') {
+    header('Location: login.php'); // 如果未登入或非管理者，跳轉回登入頁面
+    exit();
+}
+
 // 處理表單提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = mysqli_real_escape_string($conn, $_POST['name']);

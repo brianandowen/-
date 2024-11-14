@@ -8,12 +8,12 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
-$postid = mysqli_real_escape_string($conn, $_GET['id']);
+$id = mysqli_real_escape_string($conn, $_GET['id']);
 
 // 執行刪除操作
-$query = "DELETE FROM job WHERE postid = ?";
+$query = "DELETE FROM members WHERE id = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("i", $postid);
+$stmt->bind_param("i", $id);
 
 if ($stmt->execute()) {
     header("Location: query.php?message=刪除成功"); // 成功後返回查詢頁面
