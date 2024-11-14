@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
 
     if ($stmt->execute()) {
         $message = "繳費已成功添加！";
-        header("Location: fees.php"); // 重新加載頁面以更新數據
+        header("Location: fee.php"); // 重新加載頁面以更新數據
         exit();
     } else {
         $message = "添加失敗，請稍後再試。";
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
 
     <!-- 新增繳費記錄 -->
     <h2 class="mt-4">新增繳費</h2>
-    <form action="fees.php" method="POST">
+    <form action="fee.php" method="POST">
         <div class="mb-3">
             <label for="selected_member" class="form-label">選擇學生:</label>
             <select class="form-select" name="selected_member" id="selected_member" required>
