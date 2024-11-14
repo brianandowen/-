@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $student_id = $_POST['student_id'];
     $contact_info = $_POST['contact_info'];
     $enrollment_year = $_POST['enrollment_year'];
-    $position = $_POST['position'];
+    $position = $_POST['position'];  // 取得選擇的職位
 
     // 檢查學號是否已存在
     $query = "SELECT * FROM members WHERE student_id = ?";
@@ -85,7 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="mb-3">
                         <label for="position" class="form-label">職位:</label>
-                        <input type="text" id="position" name="position" class="form-control">
+                        <select id="position" name="position" class="form-control">
+                            <option value="會員">會員</option>
+                            <option value="幹部">幹部</option>
+                        </select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">註冊成員</button>
                     <a href="login.php">回上一步</a>
