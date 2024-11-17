@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'session.php';
 require_once 'db.php';
 
@@ -12,11 +13,17 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'M') {
 $message = '';
 $selected_member_id = $_GET['member_id'] ?? null;
 
-// 查詢成員列表，用於選擇特定成員
+// 查詢所有成員
 $members_query = "SELECT id, name FROM members ORDER BY name";
 $members_result = $conn->query($members_query);
 
-// 查詢所有成員的活動紀錄，用於「總覽」
+// 儲存成員資料
+$members = [];
+while ($member = $members_result->fetch_assoc()) {
+    $members[] = $member;
+}
+
+// 查詢所有活動總覽
 $overview_query = "
     SELECT a.id AS activity_id, m.name AS member_name, m.student_id, 
            a.activity_name, a.role, a.activity_date
@@ -25,6 +32,12 @@ $overview_query = "
     ORDER BY m.name, a.activity_date DESC
 ";
 $overview_result = $conn->query($overview_query);
+
+// 儲存活動總覽
+$overview_data = [];
+while ($row = $overview_result->fetch_assoc()) {
+    $overview_data[] = $row;
+}
 
 // 查詢選定成員的活動紀錄
 $activities = [];
@@ -52,43 +65,30 @@ if ($selected_member_id) {
     $total_activities = $stmt->get_result()->fetch_assoc()['total'];
 }
 
-// 處理新增或更新活動紀錄的表單提交
+// 處理新增活動紀錄
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($_POST['action'] === 'add') {
-        // 新增活動
-        $member_id = $_POST['member_id'];
-        $activity_name = $_POST['activity_name'];
-        $role = $_POST['role'];
-        $activity_date = $_POST['activity_date'];
+    $action = $_POST['action'] ?? '';
+    if ($action === 'add') {
+        $member_id = $_POST['member_id'] ?? '';
+        $activity_name = trim($_POST['activity_name']);
+        $role = $_POST['role'] ?? '';
+        $activity_date = $_POST['activity_date'] ?? '';
 
-        $insert_query = "INSERT INTO activity_logs (member_id, activity_name, role, activity_date) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($insert_query);
-        $stmt->bind_param("isss", $member_id, $activity_name, $role, $activity_date);
-
-        if ($stmt->execute()) {
-            $message = "活動紀錄已成功添加！";
-            header("Location: activities.php?member_id=" . $member_id);
-            exit();
+        // 驗證表單數據
+        if (empty($member_id) || empty($activity_name) || empty($role) || empty($activity_date)) {
+            $message = "所有欄位都必須填寫！";
         } else {
-            $message = "添加失敗，請稍後再試。";
-        }
-    } elseif ($_POST['action'] === 'edit') {
-        // 編輯活動
-        $activity_id = $_POST['activity_id'];
-        $activity_name = $_POST['activity_name'];
-        $role = $_POST['role'];
-        $activity_date = $_POST['activity_date'];
+            $insert_query = "INSERT INTO activity_logs (member_id, activity_name, role, activity_date) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($insert_query);
+            $stmt->bind_param("isss", $member_id, $activity_name, $role, $activity_date);
 
-        $update_query = "UPDATE activity_logs SET activity_name = ?, role = ?, activity_date = ? WHERE id = ?";
-        $stmt = $conn->prepare($update_query);
-        $stmt->bind_param("sssi", $activity_name, $role, $activity_date, $activity_id);
-
-        if ($stmt->execute()) {
-            $message = "活動紀錄已成功更新！";
-            header("Location: activities.php");
-            exit();
-        } else {
-            $message = "更新失敗，請稍後再試。" . $conn->error; // 顯示 SQL 錯誤
+            if ($stmt->execute()) {
+                $message = "活動「$activity_name」已成功添加！";
+                header("Location: activities.php?member_id=$member_id");
+                exit();
+            } else {
+                $message = "新增活動失敗：" . $conn->error;
+            }
         }
     }
 }
@@ -113,132 +113,88 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <!-- 總覽表格 -->
-    <h2 class="mt-4">總覽</h2>
-    <table class="table table-bordered mt-4">
-        <thead>
-            <tr>
-                <th>姓名</th>
-                <th>學號</th>
-                <th>活動名稱</th>
-                <th>角色</th>
-                <th>活動日期</th>
-                <th>操作</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = $overview_result->fetch_assoc()): ?>
-                <tr>
-                    <td><?= htmlspecialchars($row['member_name']) ?></td>
-                    <td><?= htmlspecialchars($row['student_id']) ?></td>
-                    <td><?= htmlspecialchars($row['activity_name']) ?></td>
-                    <td><?= htmlspecialchars($row['role']) ?></td>
-                    <td><?= htmlspecialchars($row['activity_date']) ?></td>
-                    <td>
-                        <!-- 編輯按鈕 -->
-                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editActivityModal" 
-                                data-activity-id="<?= $row['activity_id'] ?>" 
-                                data-activity-name="<?= htmlspecialchars($row['activity_name']) ?>"
-                                data-role="<?= htmlspecialchars($row['role']) ?>"
-                                data-activity-date="<?= htmlspecialchars($row['activity_date']) ?>">
-                            編輯
-                        </button>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
+    <!-- 標籤切換 -->
+    <ul class="nav nav-tabs mt-4" id="activityTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link <?= $selected_member_id ? '' : 'active' ?>" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="<?= $selected_member_id ? 'false' : 'true' ?>">活動總覽</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link <?= $selected_member_id ? 'active' : '' ?>" id="member-tab" data-bs-toggle="tab" data-bs-target="#member" type="button" role="tab" aria-controls="member" aria-selected="<?= $selected_member_id ? 'true' : 'false' ?>">成員活動紀錄</button>
+        </li>
+    </ul>
 
-    <!-- 編輯活動紀錄的模態框 -->
-    <div class="modal fade" id="editActivityModal" tabindex="-1" aria-labelledby="editActivityModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form action="activities.php" method="POST">
-                    <input type="hidden" name="action" value="edit">
-                    <input type="hidden" name="activity_id" id="edit_activity_id">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editActivityModalLabel">編輯活動紀錄</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="edit_activity_name" class="form-label">活動名稱</label>
-                            <input type="text" class="form-control" name="activity_name" id="edit_activity_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_role" class="form-label">角色</label>
-                            <select class="form-select" name="role" id="edit_role" required>
-                                <option value="會員">會員</option>
-                                <option value="幹部">幹部</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="edit_activity_date" class="form-label">活動日期</label>
-                            <input type="date" class="form-control" name="activity_date" id="edit_activity_date" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="submit" class="btn btn-primary">保存變更</button>
-                    </div>
-                </form>
-            </div>
+    <div class="tab-content" id="activityTabsContent">
+        <!-- 活動總覽 -->
+        <div class="tab-pane fade <?= $selected_member_id ? '' : 'show active' ?>" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+            <h2 class="mt-4">活動總覽</h2>
+            <table class="table table-bordered table-striped table-hover mt-4">
+                <thead class="table-dark">
+                    <tr>
+                        <th>姓名</th>
+                        <th>學號</th>
+                        <th>活動名稱</th>
+                        <th>角色</th>
+                        <th>活動日期</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($overview_data as $row): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($row['member_name']) ?></td>
+                            <td><?= htmlspecialchars($row['student_id']) ?></td>
+                            <td><?= htmlspecialchars($row['activity_name']) ?></td>
+                            <td><?= htmlspecialchars($row['role']) ?></td>
+                            <td><?= htmlspecialchars($row['activity_date']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-    </div>
-</div>
 
- <!-- 選擇成員 -->
- <div class="container mt-4">
-    <form action="activities.php" method="GET" class="mb-4">
-        <div class="row justify-content-center">
-            <div class="col-md-9"> <!-- 控制寬度 -->
+        <!-- 成員活動紀錄 -->
+        <div class="tab-pane fade <?= $selected_member_id ? 'show active' : '' ?>" id="member" role="tabpanel" aria-labelledby="member-tab">
+            <form action="activities.php" method="GET" class="mt-4">
                 <label for="member_id" class="form-label">選擇成員:</label>
                 <select name="member_id" id="member_id" class="form-select" onchange="this.form.submit()">
                     <option value="">請選擇成員</option>
-                    <?php while ($member = $members_result->fetch_assoc()): ?>
+                    <?php foreach ($members as $member): ?>
                         <option value="<?= $member['id'] ?>" <?= ($selected_member_id == $member['id']) ? 'selected' : '' ?>>
                             <?= htmlspecialchars($member['name']) ?>
                         </option>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </select>
-            </div>
+            </form>
+
+            <?php if ($selected_member_id && $activities): ?>
+                <h2 class="mt-4">活動紀錄</h2>
+                <p><strong>學號:</strong> <?= htmlspecialchars($activities[0]['student_id']) ?></p>
+                <p><strong>累積活動參加場次數:</strong> <?= $total_activities ?></p>
+                <table class="table table-bordered mt-4">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>活動名稱</th>
+                            <th>角色</th>
+                            <th>活動日期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($activities as $activity): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($activity['activity_name']) ?></td>
+                                <td><?= htmlspecialchars($activity['role']) ?></td>
+                                <td><?= htmlspecialchars($activity['activity_date']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
         </div>
-    </form>
-</div>
+    </div>
 
-
-    <!-- 顯示選定成員的活動紀錄 -->
-    <div class="container mt-4">
-    <?php if ($selected_member_id && $activities): ?>
-        <h2 class="mt-4">活動紀錄</h2>
-        <p><strong>學號:</strong> <?= htmlspecialchars($activities[0]['student_id']) ?></p>
-        <p><strong>累積活動參加場次數:</strong> <?= $total_activities ?></p>
-
-        <table class="table table-bordered mt-4">
-            <thead>
-                <tr>
-                    <th>活動名稱</th>
-                    <th>角色</th>
-                    <th>活動日期</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($activities as $activity): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($activity['activity_name']) ?></td>
-                        <td><?= htmlspecialchars($activity['role']) ?></td>
-                        <td><?= htmlspecialchars($activity['activity_date']) ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    <?php endif; ?>
+    <!-- 新增活動紀錄按鈕 -->
     <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addActivityModal">新增活動紀錄</button>
 
-    </div>
-    <!-- 新增活動紀錄按鈕 -->
-
-    <!-- 新增活動紀錄的模態框 -->
+    <!-- 新增活動紀錄模態框 -->
     <div class="modal fade" id="addActivityModal" tabindex="-1" aria-labelledby="addActivityModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -249,16 +205,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <h6 class="text-primary">基本資訊</h6>
                         <div class="mb-3">
                             <label for="member_id" class="form-label">選擇成員</label>
                             <select class="form-select" name="member_id" id="member_id" required>
                                 <option value="">請選擇成員</option>
-                                <?php $members_result->data_seek(0); // 重置結果集游標 ?>
-                                <?php while ($member = $members_result->fetch_assoc()): ?>
+                                <?php foreach ($members as $member): ?>
                                     <option value="<?= $member['id'] ?>"><?= htmlspecialchars($member['name']) ?></option>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             </select>
                         </div>
+                        <h6 class="text-primary">活動內容</h6>
                         <div class="mb-3">
                             <label for="activity_name" class="form-label">活動名稱</label>
                             <input type="text" class="form-control" name="activity_name" id="activity_name" required>
@@ -285,22 +242,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<script>
-    const editModal = document.getElementById('editActivityModal');
-    editModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        document.getElementById('edit_activity_id').value = button.getAttribute('data-activity-id');
-        document.getElementById('edit_activity_name').value = button.getAttribute('data-activity-name');
-        document.getElementById('edit_role').value = button.getAttribute('data-role');
-        document.getElementById('edit_activity_date').value = button.getAttribute('data-activity-date');
-    });
-</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 <footer class="text-center mt-4">
     <small>&copy; 2024 輔大資管學系 二甲 陳庭毅 412401317</small>
 </footer>
-
 </html>
 
 <?php
