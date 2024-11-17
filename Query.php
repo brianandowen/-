@@ -48,20 +48,20 @@ if (!$result) {
     <h2 class="text-center my-4">成員查詢</h2>
 
     <!-- 搜尋和排序表單 -->
-    <form action="query.php" method="POST" class="mb-4">
-        <div class="mb-3">
+    <form action="query.php" method="POST" class="row g-3 mb-4">
+        <div class="col-md-3">
             <label for="name" class="form-label">姓名</label>
-            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars($name) ?>">
+            <input type="text" name="name" class="form-control" placeholder="輸入姓名" value="<?= htmlspecialchars($name) ?>">
         </div>
-        <div class="mb-3">
+        <div class="col-md-3">
             <label for="student_id" class="form-label">學號</label>
-            <input type="text" name="student_id" class="form-control" value="<?= htmlspecialchars($student_id) ?>">
+            <input type="text" name="student_id" class="form-control" placeholder="輸入學號" value="<?= htmlspecialchars($student_id) ?>">
         </div>
-        <div class="mb-3">
+        <div class="col-md-3">
             <label for="enrollment_year" class="form-label">入學年份</label>
-            <input type="text" name="enrollment_year" class="form-control" value="<?= htmlspecialchars($enrollment_year) ?>">
+            <input type="text" name="enrollment_year" class="form-control" placeholder="輸入年份" value="<?= htmlspecialchars($enrollment_year) ?>">
         </div>
-        <div class="mb-3">
+        <div class="col-md-3">
             <label for="position" class="form-label">職位</label>
             <select name="position" class="form-select">
                 <option value="">選擇職位</option>
@@ -69,14 +69,17 @@ if (!$result) {
                 <option value="幹部" <?= ($position == '幹部') ? 'selected' : ''; ?>>幹部</option>
             </select>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">搜尋</button>
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">搜尋</button>
+        </div>
     </form>
 
-        <a href="insert.php" class="btn btn-success mb-3">新增成員</a>
+    <a href="insert.php" class="btn btn-success mb-3">新增成員</a>
 
     <!-- 顯示查詢結果 -->
-    <table class="table table-bordered table-striped">
-        <thead>
+    <?php if ($result->num_rows > 0): ?>
+    <table class="table table-bordered table-hover">
+        <thead class="table-dark">
             <tr>
                 <th>序列</th>
                 <th>姓名</th>
@@ -88,7 +91,7 @@ if (!$result) {
         </thead>
         <tbody>
         <?php $counter = 1; // 初始化計數 
-        while ($row = mysqli_fetch_assoc($result)) : ?>
+        while ($row = $result->fetch_assoc()) : ?>
             <tr>
                 <td><?= $counter++; ?></td>
                 <td><?= htmlspecialchars($row['name']) ?></td>
@@ -96,14 +99,16 @@ if (!$result) {
                 <td><?= htmlspecialchars($row['enrollment_year']) ?></td>
                 <td><?= htmlspecialchars($row['position']) ?></td>
                 <td>
-                        <a href="update.php?id=<?= urlencode($row['id']) ?>" class="btn btn-warning btn-sm">修改</a>
-                        <a href="delete.php?id=<?= urlencode($row['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除？');">刪除</a>
-
+                    <a href="update.php?id=<?= urlencode($row['id']) ?>" class="btn btn-warning btn-sm">修改</a>
+                    <a href="delete.php?id=<?= urlencode($row['id']) ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除？');">刪除</a>
                 </td>
             </tr>
         <?php endwhile; ?>
         </tbody>
     </table>
+    <?php else: ?>
+        <p class="text-center text-muted">沒有符合條件的成員。</p>
+    <?php endif; ?>
 </div>
 
 </body>
@@ -111,8 +116,3 @@ if (!$result) {
     <small>&copy; 2024 輔大資管學系 二甲 陳庭毅 412401317</small>
 </footer>
 </html>
-
-<?php
-// 關閉資料庫連線
-mysqli_close($conn);
-?>
