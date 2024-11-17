@@ -112,7 +112,6 @@ if (!$result) {
 </div>
 
 </body>
-<footer class="text-center mt-4">
-    <small>&copy; 2024 輔大資管學系 二甲 陳庭毅 412401317</small>
-</footer>
+<?php include 'footer.php'; ?>
+
 </html>
