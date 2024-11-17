@@ -24,6 +24,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
       <li class="nav-item">
         <a class="nav-link <?php echo ($current_page === 'fee.php') ? 'active' : ''; ?>" href="fee.php">財務管理</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="logout.php" >登出</a>
+      </li>
     </ul>
   </div>
 </nav>
