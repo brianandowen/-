@@ -74,7 +74,11 @@ if (!isset($_SESSION['username'])) {
 </script>
 
 </body>
-<?php include 'footer.php'; ?>
-
+<footer class="bg-light text-center py-3" style="position: fixed; bottom: 5%; width: 100%; text-align: center;">
+    <small>
+      Copyright © 2024 輔大資管學系 二甲 陳庭毅 412401317</br>
+      Copyright © 2024 輔大資管學系 二甲 吳宇燊 412261121
+    </small>
+</footer>
 
 </html>
