@@ -72,12 +72,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
         </div>
     </div>
 
+    <!-- 繳費統計圖 -->
+    <div style="width: 500px; height: 500px; margin: 0 auto;">
+    <canvas id="feeChart"></canvas>
+</div>
+
     <!-- 已繳費學生列表 -->
     <div class="mb-5">
-        <h2>已繳費學生列表</h2>
-        <?php if ($message): ?>
-            <div class="alert alert-info"><?= htmlspecialchars($message) ?></div>
-        <?php endif; ?>
+        <h2 class="text-center mb-4">已繳費學生列表</h2>
         <table class="table table-bordered table-striped mt-3">
             <thead class="table-dark">
                 <tr>
@@ -97,27 +99,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['selected_member'])) {
             </tbody>
         </table>
     </div>
-
-    <!-- 新增繳費 -->
-    <div class="mb-5">
-        <h2>新增繳費</h2>
-        <form action="fee.php" method="POST" class="mt-3">
-            <div class="mb-3">
-                <label for="selected_member" class="form-label">選擇學生:</label>
-                <select class="form-select" name="selected_member" id="selected_member" required>
-                    <option value="">請選擇尚未繳費的學生</option>
-                    <?php while ($row = $unpaid_result->fetch_assoc()): ?>
-                        <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?> (<?= htmlspecialchars($row['student_id']) ?>)</option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-            <button type="submit" class="btn btn-primary w-100">新增繳費</button>
-        </form>
-    </div>
 </div>
 
+
+
+
+    <!-- 新增繳費 -->
+    <div class="container my-5"> <!-- 使用 container 限制內容寬度 -->
+    <h2 class="text-center mb-4">新增繳費</h2> <!-- 標題居中並加入下方間距 -->
+    <form action="fee.php" method="POST">
+        <div class="row justify-content-center"> <!-- 使用 row 並讓內容居中 -->
+            <div class="col-md-6"> <!-- 限制寬度 -->
+                <div class="mb-3">
+                    <label for="selected_member" class="form-label">選擇學生:</label>
+                    <select class="form-select" name="selected_member" id="selected_member" required>
+                        <option value="">請選擇尚未繳費的學生</option>
+                        <?php while ($row = $unpaid_result->fetch_assoc()): ?>
+                            <option value="<?= $row['id'] ?>"><?= htmlspecialchars($row['name']) ?> (<?= htmlspecialchars($row['student_id']) ?>)</option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">新增繳費</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 引入 Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 繳費和未繳費數據
+    const paidCount = <?= $paid_count ?>;
+    const unpaidCount = <?= $unpaid_count ?>;
+
+    // 繪製圖表
+    const ctx = document.getElementById('feeChart').getContext('2d');
+    const feeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['已繳費', '未繳費'],
+            datasets: [{
+                data: [<?= $paid_count ?>, <?= $unpaid_count ?>],
+                backgroundColor: ['#28a745', '#dc3545'],
+                borderColor: ['#ffffff', '#ffffff'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1.5, // 設置寬高比例
+        }
+    });
+
+</script>
 </body>
+
 <?php include 'footer.php'; ?>
 
 </html>
