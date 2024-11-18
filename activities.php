@@ -122,6 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <button class="nav-link <?= $selected_member_id ? 'active' : '' ?>" id="member-tab" data-bs-toggle="tab" data-bs-target="#member" type="button" role="tab" aria-controls="member" aria-selected="<?= $selected_member_id ? 'true' : 'false' ?>">成員活動紀錄</button>
         </li>
     </ul>
+    <!-- 新增活動紀錄按鈕 -->
+    <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addActivityModal">新增活動紀錄</button>
 
     <div class="tab-content" id="activityTabsContent">
         <!-- 活動總覽 -->
@@ -191,8 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- 新增活動紀錄按鈕 -->
-    <button class="btn btn-primary mt-4" data-bs-toggle="modal" data-bs-target="#addActivityModal">新增活動紀錄</button>
 
     <!-- 新增活動紀錄模態框 -->
     <div class="modal fade" id="addActivityModal" tabindex="-1" aria-labelledby="addActivityModalLabel" aria-hidden="true">
