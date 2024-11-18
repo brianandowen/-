@@ -9,6 +9,7 @@ if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'M') {
     exit();
 }
 
+
 // 初始化訊息
 $message = '';
 $selected_member_id = $_GET['member_id'] ?? null;
@@ -137,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <th>活動名稱</th>
                         <th>角色</th>
                         <th>活動日期</th>
+                        <th>操作</th> <!-- 新增操作欄 -->
                     </tr>
                 </thead>
                 <tbody>
@@ -147,6 +149,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <td><?= htmlspecialchars($row['activity_name']) ?></td>
                             <td><?= htmlspecialchars($row['role']) ?></td>
                             <td><?= htmlspecialchars($row['activity_date']) ?></td>
+                            <td>
+                                <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
+                                <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
+                            </td> <!-- 操作按鈕 -->
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -177,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <th>活動名稱</th>
                             <th>角色</th>
                             <th>活動日期</th>
+                            <th>操作</th> <!-- 新增操作欄 -->
                         </tr>
                     </thead>
                     <tbody>
@@ -185,6 +192,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <td><?= htmlspecialchars($activity['activity_name']) ?></td>
                                 <td><?= htmlspecialchars($activity['role']) ?></td>
                                 <td><?= htmlspecialchars($activity['activity_date']) ?></td>
+                                <td>
+                                <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
+                                <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -192,7 +203,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
         </div>
     </div>
-
 
     <!-- 新增活動紀錄模態框 -->
     <div class="modal fade" id="addActivityModal" tabindex="-1" aria-labelledby="addActivityModalLabel" aria-hidden="true">
