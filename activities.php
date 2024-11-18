@@ -131,32 +131,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="tab-pane fade <?= $selected_member_id ? '' : 'show active' ?>" id="overview" role="tabpanel" aria-labelledby="overview-tab">
             <h2 class="mt-4">活動總覽</h2>
             <table class="table table-bordered table-striped table-hover mt-4">
-                <thead class="table-dark">
-                    <tr>
-                        <th>姓名</th>
-                        <th>學號</th>
-                        <th>活動名稱</th>
-                        <th>角色</th>
-                        <th>活動日期</th>
-                        <th>操作</th> <!-- 新增操作欄 -->
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($overview_data as $row): ?>
-                        <tr>
-                            <td><?= htmlspecialchars($row['member_name']) ?></td>
-                            <td><?= htmlspecialchars($row['student_id']) ?></td>
-                            <td><?= htmlspecialchars($row['activity_name']) ?></td>
-                            <td><?= htmlspecialchars($row['role']) ?></td>
-                            <td><?= htmlspecialchars($row['activity_date']) ?></td>
-                            <td>
-                                <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
-                                <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
-                            </td> <!-- 操作按鈕 -->
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+    <thead class="table-dark">
+        <tr>
+            <th>姓名</th>
+            <th>學號</th>
+            <th>活動名稱</th>
+            <th>角色</th>
+            <th>活動日期</th>
+            <th>操作</th> <!-- 新增操作欄 -->
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($overview_data as $row): ?>
+            <tr>
+                <td><?= htmlspecialchars($row['member_name']) ?></td>
+                <td><?= htmlspecialchars($row['student_id']) ?></td>
+                <td><?= htmlspecialchars($row['activity_name']) ?></td>
+                <td><?= htmlspecialchars($row['role']) ?></td>
+                <td><?= htmlspecialchars($row['activity_date']) ?></td>
+                <td>
+                    <a href="update_activity.php?id=<?= $row['activity_id'] ?>" class="btn btn-warning btn-sm">變更</a>
+                    <a href="delete_activity.php?id=<?= $row['activity_id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
         </div>
 
         <!-- 成員活動紀錄 -->
@@ -178,28 +179,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p><strong>學號:</strong> <?= htmlspecialchars($activities[0]['student_id']) ?></p>
                 <p><strong>累積活動參加場次數:</strong> <?= $total_activities ?></p>
                 <table class="table table-bordered mt-4">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>活動名稱</th>
-                            <th>角色</th>
-                            <th>活動日期</th>
-                            <th>操作</th> <!-- 新增操作欄 -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($activities as $activity): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($activity['activity_name']) ?></td>
-                                <td><?= htmlspecialchars($activity['role']) ?></td>
-                                <td><?= htmlspecialchars($activity['activity_date']) ?></td>
-                                <td>
-                                <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
-                                <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+    <thead class="table-dark">
+        <tr>
+            <th>活動名稱</th>
+            <th>角色</th>
+            <th>活動日期</th>
+            <th>操作</th> <!-- 新增操作欄 -->
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($activities as $activity): ?>
+            <tr>
+                <td><?= htmlspecialchars($activity['activity_name']) ?></td>
+                <td><?= htmlspecialchars($activity['role']) ?></td>
+                <td><?= htmlspecialchars($activity['activity_date']) ?></td>
+                <td>
+                    <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
+                    <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
             <?php endif; ?>
         </div>
     </div>

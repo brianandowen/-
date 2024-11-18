@@ -7,7 +7,6 @@ if (!isset($_GET['id'])) {
     die("未提供活動 ID。");
 }
 
-$activityId = intval($_GET['id']); // 將活動 ID 轉換為整數，增加安全性
 
 // 查詢活動詳細資訊
 $query = "SELECT * FROM activity_logs WHERE id = ?";
