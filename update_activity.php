@@ -1,14 +1,22 @@
 <?php
+session_start();
 require_once 'session.php';
 require_once 'db.php';
+
+// 確保使用者已登入並且是管理員
+if (!isset($_SESSION['username']) || $_SESSION['role'] !== 'M') {
+    header('Location: login.php');
+    exit();
+}
 
 // 檢查是否提供活動 ID
 if (!isset($_GET['id'])) {
     die("未提供活動 ID。");
 }
 
+$activityId = intval($_GET['id']); // 確保 ID 為整數
 
-// 查詢活動詳細資訊
+// 查詢要編輯的活動資訊
 $query = "SELECT * FROM activity_logs WHERE id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $activityId);
@@ -16,17 +24,18 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows !== 1) {
-    die("找不到指定的活動。");
+    die("找不到指定的活動記錄。");
 }
 
 $activity = $result->fetch_assoc();
 
-// 處理表單提交更新
+// 處理表單提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activityName = trim($_POST['activity_name']);
     $role = $_POST['role'];
     $activityDate = $_POST['activity_date'];
 
+    // 更新資料庫
     $updateQuery = "UPDATE activity_logs SET activity_name = ?, role = ?, activity_date = ? WHERE id = ?";
     $stmt = $conn->prepare($updateQuery);
     $stmt->bind_param("sssi", $activityName, $role, $activityDate, $activityId);
@@ -50,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<?php include 'navbar.php'; ?>
+
 <div class="container mt-5">
     <h2 class="text-center mb-4">更新活動資訊</h2>
 
@@ -60,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     <?php endif; ?>
 
-    <!-- 更新活動表單 -->
+    <!-- 編輯活動表單 -->
     <form action="update_activity.php?id=<?= urlencode($activityId) ?>" method="POST">
         <div class="mb-3">
             <label for="activity_name" class="form-label">活動名稱</label>
@@ -79,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
         <button type="submit" class="btn btn-primary w-100">更新活動資訊</button>
     </form>
+    <a href="activities.php" class="btn btn-secondary mt-3 w-100">返回活動管理</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
