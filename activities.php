@@ -194,8 +194,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <td><?= htmlspecialchars($activity['role']) ?></td>
                 <td><?= htmlspecialchars($activity['activity_date']) ?></td>
                 <td>
-                    <a href="update_activity.php?id=<?= $activity['id'] ?>" class="btn btn-warning btn-sm">變更</a>
-                    <a href="delete_activity.php?id=<?= $activity['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
+                <a href="update_activity.php?id=<?= $row['activity_id'] ?>" class="btn btn-warning btn-sm">變更</a>
+                <a href="delete_activity.php?id=<?= $row['activity_id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('確定刪除此活動嗎？')">刪除</a>
                 </td>
             </tr>
         <?php endforeach; ?>
